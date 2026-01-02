@@ -28,6 +28,8 @@ html, body {
   background: radial-gradient(circle at top, rgba(241,196,15,0.08), transparent 40%),
               linear-gradient(135deg, var(--cga-bg-main), var(--cga-bg-secondary));
   color: var(--cga-text-main);
+    -webkit-touch-callout: none;
+
 }
 
 .container {
@@ -151,7 +153,12 @@ input::placeholder { color: rgba(236,240,241,0.6); }
 .disconnect-modal.hidden {
   display: none;
 }
-
+/* ❌ Sayfa genelinde seçim kapalı */
+* {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 </style>
 </head>
 <body>
@@ -441,7 +448,6 @@ confirmBtn.onclick = () => {
   closeDisconnectModal();
   disconnectProject();
 };
-
 </script>
 <!-- 🔒 DISCONNECT MODAL -->
 <div id="disconnectModal" class="disconnect-modal hidden">
