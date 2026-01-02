@@ -168,14 +168,24 @@ window.addEventListener("load", ()=>{
 [secUsername, secPassword].forEach(el=>{ el.addEventListener("input", ()=>{ el.value = el.value.toUpperCase(); }); });
 
 // QR MODAL
-let qrReader;
+// QR MODAL (FIX)
+let qrReader = null;
 const qrModal = document.getElementById("qrModal");
 const closeQRModal = document.getElementById("closeQRModal");
 
-closeQRModal.addEventListener("click", async ()=>{
-  qrModal.style.display="none"; 
-  if(qrReader) await qrReader.stop();
+closeQRModal.addEventListener("click", async () => {
+  qrModal.style.display = "none";
+
+  if (qrReader) {
+    try {
+      await qrReader.stop();
+    } catch (e) {}
+    qrReader = null;
+  }
+
+  document.getElementById("qr-reader").innerHTML = "";
 });
+
 
 // SITE CONFIG
 async function loadSiteConfig(siteID){
@@ -258,34 +268,36 @@ async function loadSiteName(db){
 }
 
 
-
 document.getElementById("startQR").addEventListener("click", async () => {
-  qrModal.style.display = "flex"; // Modal açılır
+  qrModal.style.display = "flex";
 
-  // Eğer daha önce bir QRReader varsa temizle
-  if (qrReader) {
-    await qrReader.clear().catch(() => {});
-  }
+  // QR alanını SIFIRLA
+  const qrDiv = document.getElementById("qr-reader");
+  qrDiv.innerHTML = "";
 
-  qrReader = new Html5Qrcode("qr-reader"); // Yeni QR reader oluştur
+  // YENİ instance (ÇOK ÖNEMLİ)
+  qrReader = new Html5Qrcode("qr-reader");
 
-  // QR kutusu boyutu (ekran genişliğine göre)
   const qrBoxSize = Math.min(window.innerWidth * 0.8, 300);
-
-  // Kamera ayarları (mobil/PC uyumlu)
   const cameraConfig = { facingMode: "environment" };
 
   // QR taramayı başlat
   qrReader.start(
     cameraConfig,
     { fps: 10, qrbox: qrBoxSize },
-    async (qrCodeMessage) => {
-      // QR okunduğunda yapılacaklar
-      await qrReader.stop(); // taramayı durdur
-      qrModal.style.display = "none"; // modal kapat
-      await loadSiteConfig(qrCodeMessage); // QR verisi ile site ayarlarını yükle
-      document.getElementById("qrMessage").textContent = "QR okundu, site yüklendi!";
-    },
+ async (qrCodeMessage) => {
+  try {
+    await qrReader.stop();
+  } catch(e) {}
+
+  qrReader = null;
+  qrModal.style.display = "none";
+
+  await loadSiteConfig(qrCodeMessage);
+  document.getElementById("qrMessage").textContent =
+    "QR okundu, site yüklendi!";
+},
+
     (err) => {
       // Tarama sırasında hatalar
       console.log("QR tarama hatası:", err);
